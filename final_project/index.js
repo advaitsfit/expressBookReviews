@@ -9,28 +9,32 @@ const app = express();
 
 app.use(express.json());
 
+// Session (required for assignment)
 app.use("/customer", session({
     secret: "fingerprint_customer",
     resave: true,
     saveUninitialized: true
 }));
 
-// ✅ Auth middleware (NOT applied globally)
-const auth = (req, res, next) => {
-    if (!req.headers.authorization) {
+// ✅ JWT Middleware (correct version)
+app.use("/customer/auth", function auth(req, res, next) {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
         return res.status(403).json({ message: "No token provided" });
     }
 
-    const token = req.headers.authorization.split(" ")[1];
+    const token = authHeader.split(" ")[1];
 
-    try {
-        const decoded = jwt.verify(token, "fingerprint_customer");
+    jwt.verify(token, "access", (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: "Invalid token" });
+        }
+
         req.user = decoded;
         next();
-    } catch (err) {
-        return res.status(401).json({ message: "Invalid token" });
-    }
-};
+    });
+});
 
 const PORT = 5000;
 
