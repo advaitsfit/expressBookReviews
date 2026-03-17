@@ -15,8 +15,8 @@ app.use("/customer", session({
     saveUninitialized: true
 }));
 
-// ✅ FIXED (removed *)
-app.use("/customer/auth", function auth(req, res, next) {
+// ✅ Auth middleware (NOT applied globally)
+const auth = (req, res, next) => {
     if (!req.headers.authorization) {
         return res.status(403).json({ message: "No token provided" });
     }
@@ -30,7 +30,7 @@ app.use("/customer/auth", function auth(req, res, next) {
     } catch (err) {
         return res.status(401).json({ message: "Invalid token" });
     }
-});
+};
 
 const PORT = 5000;
 
